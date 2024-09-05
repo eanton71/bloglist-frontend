@@ -2,9 +2,9 @@ const Blog = ({ blog }) => {
   console.log(blog)
   return (
     <div>
-      {blog.title}
-      {blog.url}
-      {blog.likes}
+      <p>Titulo: {blog.title}</p>
+      <p>Url: {blog.url}</p>
+      <p>Likes: {blog.likes}</p>
     </div>
   );
 }
