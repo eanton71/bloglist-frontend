@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import Blog from "./components/Blog";
 import LoginForm from "./components/LoginForm";
 import BlogForm from "./components/BlogForm";
+import Notification from "./components/Notification";
 import blogService from "./services/blogs";
 import loginService from "./services/login";
-
+const DELAY = 5000;
 const App = () => {
   const [blogs, setBlogs] = useState([]);
   const [username, setUsername] = useState("");
@@ -14,10 +15,45 @@ const App = () => {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [url, setUrl] = useState("");
+
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [sucessMessage, setSucessMessage] = useState("sucess");
+
   useEffect(() => {
     blogService.getAll().then((blogs) => setBlogs(blogs));
   }, []);
-
+  /**
+   *
+   */
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem("loggedBlogListAppUser");
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON);
+      setUser(user);
+      blogService.setToken(user.token);
+      notifyTimeout.sucess(
+        DELAY,
+        `user logged`
+      );
+    }
+  }, []);
+  /**
+   * Gestion de los menaajes de notificacion para error o exito
+   */
+  const notifyTimeout = {
+    error: (delay, error) => {
+      setErrorMessage(` '${error}'`);
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, delay);
+    },
+    sucess: (delay, sucess) => {
+      setSucessMessage(sucess);
+      setTimeout(() => {
+        setSucessMessage(null);
+      }, delay);
+    },
+  };
   //funcion para manejar el evento de formulario de inicio de sesion
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -37,12 +73,10 @@ const App = () => {
       setUser(user);
       setUsername("");
       setPassword("");
+      notifyTimeout.sucess(DELAY, `user logged`);
     } catch (exception) {
-      //setErrorMessage("Wrong credentials");
-      console.log(exception);
-      setTimeout(() => {
-        //setErrorMessage(null);
-      }, 5000);
+      notifyTimeout.error(DELAY, `Wrong credentials ${exception}`);
+      
     }
   };
   const handleCreateBlog = async (event) => {
@@ -60,39 +94,12 @@ const App = () => {
         setTitle("");
         setAuthor("");
         setUrl("");
-
-        // setNewNote("");
+       notifyTimeout.sucess(DELAY, `blog creado`);
       })
       .catch((error) => {
-        //setErrorMessage(`Note '${error}'`);
-        setTimeout(() => {
-          // setErrorMessage(null);
-        }, 5000);
+        notifyTimeout.error(DELAY, `Note '${error}'`);
       });
-     
-    /* let token = JSON.parse(
-        window.localStorage.getItem("loggedBlogListAppUser")
-      ).token;
-      console.log(token);*/
-    /*} catch (exception) {
-      //setErrorMessage("Wrong credentials");
-      console.log(exception);
-      setTimeout(() => {
-        //setErrorMessage(null);
-      }, 5000);
-    }*/
   };
-  /**
-   *
-   */
-  useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem("loggedBlogListAppUser");
-    if (loggedUserJSON) {
-      const user = JSON.parse(loggedUserJSON);
-      setUser(user);
-      blogService.setToken(user.token);
-    }
-  }, []);
   /***
    * manejadores de eventos asociados al estado de los inputs
    */
@@ -121,6 +128,7 @@ const App = () => {
   return (
     <div>
       <h2>blogs</h2>
+      <Notification error={errorMessage} sucess={sucessMessage} />
       {/* renderizado condicional de formualri ode inicio de sesion y de notas */}
       {user === null ? (
         <LoginForm

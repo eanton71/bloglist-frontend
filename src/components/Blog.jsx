@@ -1,5 +1,5 @@
 const Blog = ({ blog }) => {
-  console.log(blog)
+  //console.log(blog)
   return (
     <div>
       <span>Titulo: {blog.title}</span>
