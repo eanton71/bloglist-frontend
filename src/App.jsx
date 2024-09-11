@@ -10,7 +10,7 @@ const App = () => {
   const [password, setPassword] = useState("");
   //variable de estado para el token de autenticacion
   const [user, setUser] = useState(null);
-
+  
   useEffect(() => {
     blogService.getAll().then((blogs) => setBlogs(blogs));
   }, []);
@@ -25,11 +25,12 @@ const App = () => {
         username,
         password,
       });
-
+      window.localStorage.setItem("loggedBlogListAppUser", JSON.stringify(user)); 
       blogService.setToken(user.token);
       setUser(user);
       setUsername("");
       setPassword("");
+      setLogged(true);
     } catch (exception) {
       //setErrorMessage("Wrong credentials");
       console.log(exception);
@@ -38,6 +39,17 @@ const App = () => {
       }, 5000);
     }
   };
+  /**
+   * 
+   */
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem("loggedBlogListAppUser");
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON);
+      setUser(user);
+      blogService.setToken(user.token);
+    }
+  }, []);
   /***
    * manejadores de eventos asociados al estado de los inputs
    */
@@ -47,7 +59,11 @@ const App = () => {
     },
     password: (event) => {
       setPassword(event.target.value);
-    } 
+    },
+    logout: (event) => {
+      setUser(null);
+      window.localStorage.removeItem("loggedBlogListAppUser");
+    },
   };
 
 
@@ -66,6 +82,12 @@ const App = () => {
       ) : (
         <div>
           <p>{user.name} logged-in</p>
+          <button
+            type="submit"
+            onClick={  handleChange["logout"]}
+          >
+            logout
+          </button>
         </div>
       )}
 
